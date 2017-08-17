@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html _manifest="./index.appcache">
+
+<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta charset="utf-8" />
+  <meta name="Cache-Control" content="private">
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="viewport" content="minimum-scale=1, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>
+    <%= htmlWebpackPlugin.options.title %>
+  </title>
+  <script>
+    /*
+     *  NO.01 网络出错时展示的UI
+     *  用法：网络出错时调用：networkError('./images/networkError-icon.png')
+     *        传入参数为网络出错图片url，可自定义，不传会给默认值'./images/networkError-icon.png'
+     */
+    eval(function (p, a, c, k, e, d) { e = function (c) { return (c < a ? "" : e(parseInt(c / a))) + ((c = c % a) > 35 ? String.fromCharCode(c + 29) : c.toString(36)) }; if (!''.replace(/^/, String)) { while (c--) d[e(c)] = k[c] || e(c); k = [function (e) { return d[e] }]; e = function () { return '\\w+' }; c = 1; }; while (c--) if (k[c]) p = p.replace(new RegExp('\\b' + e(c) + '\\b', 'g'), k[c]); return p; }('(7(){a.z=7(b){8 4=6.g(\'4\');4.F=\'p/Q\';4.r=".d{R:S;P:M;N:0;O:0;p-X:Y}.d>2{9:l;c:l}.n{j-q:Z;k:#W}.o{m:T U#i;m-D:E;A:B-J;C:G H;I:L K;k:#i;j-q:1i}";6.1j(\'1k\').1f(0).1g(4);6.1h.r=\'<1 1q-1o=""><1 f="d"><2 y="\'+(u.1l(\'w-s\')||b)+\'"><1 f="n">1m</1><1 f="o" 16="a.17.14()">11</1></1></1>\'};a.t=7(b){8 2=6.g(\'2\');2.12("13",7(){8 3=6.g("1b"),h=3.18("19");3.9=5.9;3.c=5.c;h.1a(5,0,0,5.9,5.c);8 v=3.1e("1d/x");1c{u.15(\'w-s\',v);}1p(e){}},1n);2.y=b||\'./10/z-V.x\'};a.t(\'\');})()', 62, 89, '|div|img|imgCanvas|style|this|document|function|var|width|window|imgSrc|height|IconNetworkError||class|createElement|imgContext|2fb3fe|font|color|150px|border|networkErrorMsg|refreshBtn|text|size|innerHTML|networkErrorImages|setNetworkErrorImage|localStorage|imgAsDataURL||png|src|networkError|display|inline|margin|radius|5px|type|20px|auto|padding|block|40px|10px|165px|left|right|top|css|position|fixed|1PX|solid|icon|575757|align|center|12px|images|刷新看看|addEventListener|load|reload|setItem|onClick|location|getContext|2d|drawImage|canvas|try|image|toDataURL|item|appendChild|body|15px|getElementsByTagName|HEAD|getItem|网络错误|false|reactroot|catch|data'.split('|'), 0, {}));
+
+    /*
+     *  NO.02 宽度自适应解决方案
+     */
+    !function (n, e) {
+      var t = n.documentElement, i = "orientationchange" in window ? "orientationchange" : "resize", d = function () {
+        var n = t.clientWidth;
+        if (n) {
+          var e = 50 * (n / 375);
+          e = e > 54 ? 54 : e;
+          t.style.fontSize = e + "px"
+        }
+      };
+      n.addEventListener && (e.addEventListener(i, d, !1), n.addEventListener("DOMContentLoaded", d, !1))
+    }(document, window);
+
+
+
+    /**
+     * 需要关闭webView
+     */
+    function needCloseWebView() {
+      //判断是否应该关闭webView
+
+      //当前地址和URL中的地址相同时，关闭webView
+      if (sessionStorage.getItem('closeWebViewUrl')) {
+        if (sessionStorage.getItem('closeWebViewUrl') == window.location.href) {
+          try {
+            closeWebView(); //关闭webView
+          } catch (error) {
+            console.log("closeWebView出错了：", error);
+          }
+          return true; //需要关闭webView
+        }
+      }
+
+      //当前地址和URL中的地址不相同时，关闭webView
+      if (sessionStorage.getItem('noCloseWebViewUrl')) {
+        if (sessionStorage.getItem('noCloseWebViewUrl') != window.location.href) {
+          try {
+            if (sessionStorage.getItem('noCloseWebViewUrl').indexOf('/orderDetail/') !== -1 && window.location.href.indexOf('/orderDetail/') !== -1) {
+              //订单详情页面 不关闭web
+            } else {
+              closeWebView(); //关闭webView
+            }
+          } catch (error) {
+            console.log("closeWebView出错了：", error);
+          }
+          return true; //需要关闭webView
+        }
+      }
+      return false;
+    }
+
+    /**
+     * 关闭webView
+     */
+    function closeWebView() {
+      var userType = localStorage.getItem('userType') + '';
+      userType = userType.toLocaleLowerCase();
+      var ua = navigator.userAgent;
+      if (userType == 'weixin') {
+        if (window.jsApiIsLoad) {
+          closeWeiXinWebView() //执行JsApi关闭微信webView
+        } else {
+          window.jsApiIsReady = function () {
+            closeWeiXinWebView() //执行JsApi关闭微信webView
+          }
+        }
+      } else if (userType == 'qq') {
+        //QQ不存在关闭的问题
+      } else if (userType == "alipay" && ua.indexOf("AlipayClient") !== -1) { //支付宝
+        if (window.AlipayJSBridge) {
+          AlipayJSBridge.call('closeWebview');
+        }
+      }
+    };
+
+    /**
+     * 关闭微信webView 
+     */
+    function closeWeiXinWebView() {
+      wx.closeWindow();
+      setTimeout(function () {
+        wx.closeWindow();
+      }, 500);
+      setTimeout(function () {
+        wx.closeWindow();
+      }, 1000);
+      setTimeout(function () {
+        wx.closeWindow();
+      }, 2000);
+    }
+
+    /**
+     * 监听返回
+     */
+    window.onpopstate = function (e) {
+      if (sessionStorage.getItem('closeWebViewUrl')) {
+        return; //需要关闭webView的时候 不再往下执行
+      }
+      // console.log("history state:", e.state, "url:", window.location.href)
+      if (e.state) {
+        if (e.state.close) {
+          closeWebView(); //关闭webView 注：处于首页的时候才执行关闭webView操作
+        }
+        if (e.state.toUrl) {
+          sessionStorage.setItem('closeWebViewUrl', window.location.href); //关闭webView的URL
+          window.location.href = e.state.toUrl; //跳转到对应的页面
+        }
+
+        if (e.state.confirm) {
+          //后退时弹窗
+          try {
+            if (sessionStorage.getItem('showConfirm')) {
+              if (window['stateConfirmCallback']) {
+                window['stateConfirmCallback']();
+              }
+            } else {
+              history.back();
+            }
+          } catch (error) {
+            console.error(error);
+          }
+        } else if (document.getElementById('Modal')) {
+          //离开页面时，关闭弹窗
+          document.body.removeChild(document.getElementById('Modal'));
+        }
+      } else {
+        //离开页面时，关闭弹窗
+        if (document.getElementById('Modal')) {
+          document.body.removeChild(document.getElementById('Modal'));
+          sessionStorage.removeItem('showConfirm'); //移除弹窗判断条件
+        }
+      }
+    };
+
+    /*
+     *  NO.03 车行易埋点
+     */
+    (function () {
+      function tj() { //空统计
+        this.init = function (a) { }
+        this.recordUserBehavior = function (a) { }
+        this.getNowFormatDate = function () { return ''; }
+      }
+      window.cxytj = new tj; //创建对象
+      var hm = document.createElement("script");
+      hm.src = "https://tongji.cx580.com/userBehavior/static/js/cxytongji_v3.0.js"; //统计JS的路径
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+
+      window.cxytjReady = function () { //车行易统计JS加载完成后自动执行此函数
+        window.cxytjIsReady = true; //埋点Js加载完成标识符
+      }
+    })();
+  </script>
+</head>
+
+<body>
+  <div id="app"></div>
+  <script>
+    //需要屏蔽APP的刷新功能，否则刷新后可能获取不到userId 如果不屏蔽，这需要延迟请求数据
+    //是否显示APP头部导航条
+    function cxyControlTitleLayout() { }
+    //导航条右上角
+    function cxyCustomizeBackText() { }
+  </script>
+  <script src="//cx580.oss-cn-shenzhen.aliyuncs.com/cweb/js/react-dom-15.min.js" onerror="networkError('./images/networkError-icon.png')"></script>
+</body>
+
+</html>
+<!--░░░░░░░░░░░░░░░░░░░░░░░░▄░░-->
+<!--░░░░░░░░░▐█░░░░░░░░░░░▄▀▒▌░-->
+<!--░░░░░░░░▐▀▒█░░░░░░░░▄▀▒▒▒▐-->
+<!--░░░░░░░▐▄▀▒▒▀▀▀▀▄▄▄▀▒▒▒▒▒▐-->
+<!--░░░░░▄▄▀▒░▒▒▒▒▒▒▒▒▒█▒▒▄█▒▐-->
+<!--░░░▄▀▒▒▒░░░▒▒▒░░░▒▒▒▀██▀▒▌-->
+<!--░░▐▒▒▒▄▄▒▒▒▒░░░▒▒▒▒▒▒▒▀▄▒▒-->
+<!--░░▌░░▌█▀▒▒▒▒▒▄▀█▄▒▒▒▒▒▒▒█▒▐-->
+<!--░▐░░░▒▒▒▒▒▒▒▒▌██▀▒▒░░░▒▒▒▀▄-->
+<!--░▌░▒▄██▄▒▒▒▒▒▒▒▒▒░░░░░░▒▒▒▒-->
+<!--▀▒▀▐▄█▄█▌▄░▀▒▒░░░░░░░░░░▒▒▒-->
+<!--单身狗就这样默默地看着你，一句话也不说。-->

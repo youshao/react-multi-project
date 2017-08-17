@@ -1,0 +1,11 @@
+CACHE MANIFEST
+# 2017-8-11 16:38:41
+# 1、userId和token的获取改为从cookie获取，cookie不存在则从URL获取，URL不存在userId时则跑单点登录获取。
+# 2、添加车辆成功后进入违章列表，从违章列表返回时，会根据之前的来源页面进行逐步后退（如果从H5首页添加，则返回H5首页。如果从违章车辆列表添加，则返回违章车辆列表首页）
+# 3、优化从引导注册跳转到违章列表时，还需要单点登录的bug。
+//cx580.oss-cn-shenzhen.aliyuncs.com/cweb/js/react-dom-15.min.js
+//oss.cx580.com/AddCar/vendor-201708111636.js
+//oss.cx580.com/AddCar/bundle-201708111636.js
+
+NETWORK:
+*
